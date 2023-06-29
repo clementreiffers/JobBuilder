@@ -1,0 +1,12 @@
+apiVersion: api.job-builder/v1alpha1
+kind: JobBuilder
+metadata:
+  labels:
+    app.kubernetes.io/name: jobbuilder
+    app.kubernetes.io/instance: jobbuilder-sample
+    app.kubernetes.io/part-of: jobbuilder
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: jobbuilder
+  name: jobbuilder-sample
+spec:
+  accounts: "398803b74bcdb1b454434669bc634190"
