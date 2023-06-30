@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,7 +15,7 @@ func generateAwsConfig() []v1.EnvVar {
 	}
 }
 
-func generateDownloadFilesContainer() v1.Container {
+func generateDownloadFilesContainer(accounts string) v1.Container {
 	return v1.Container{
 		Name:            "download-files",
 		Image:           "public.ecr.aws/aws-cli/aws-cli:latest",
@@ -25,7 +26,7 @@ func generateDownloadFilesContainer() v1.Container {
 			{Name: "context", MountPath: "/context"},
 		},
 		Command: []string{"aws", "--endpoint-url=$(AWS_ENDPOINT)"},
-		Args:    []string{"s3", "sync", "s3://$(AWS_BUCKET)", "/context"},
+		Args:    []string{"s3", "sync", fmt.Sprintf("s3://$(AWS_BUCKET)/%s", accounts), "/context"},
 	}
 }
 
@@ -133,7 +134,7 @@ func generateVolumes() []v1.Volume {
 	}
 }
 
-func createJob() batchv1.Job {
+func createJob(accounts string) batchv1.Job {
 	ttl := int32(3600)
 	return batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -147,7 +148,7 @@ func createJob() batchv1.Job {
 			Template: v1.PodTemplateSpec{
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{
-						generateDownloadFilesContainer(),
+						generateDownloadFilesContainer(accounts),
 						generateGettingDockerfile(),
 						generateCapnp(),
 						generateKaniko(),

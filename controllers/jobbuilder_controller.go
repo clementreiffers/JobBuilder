@@ -64,8 +64,11 @@ func applyResource(r *JobBuilderReconciler, ctx context.Context, resource client
 func (r *JobBuilderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.Log.WithValues("JobBuilder", req.NamespacedName)
 
-	job := createJob()
-	err := applyResource(r, ctx, &job, &batchv1.Job{})
+	instance := &apiv1alpha1.JobBuilder{}
+	err := r.Get(ctx, req.NamespacedName, instance)
+
+	job := createJob(instance.Spec.Accounts)
+	err = applyResource(r, ctx, &job, &batchv1.Job{})
 	if err != nil {
 		logger.Error(err, "unable to create Pod")
 		return ctrl.Result{}, err
