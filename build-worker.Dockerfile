@@ -1,11 +1,10 @@
 FROM ubuntu AS worker-builder
 
 RUN apt-get update && apt-get install -y clang libc++-dev nodejs npm
-RUN npm -g i workerd
 
 COPY ./ ./
 
-RUN workerd compile ./downloads/config.capnp > serv.out
+RUN npx workerd compile config.capnp > serv.out
 
 FROM ubuntu AS worker
 
