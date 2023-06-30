@@ -1,7 +1,4 @@
-ARG FOLDER_PATH
-
 FROM ubuntu AS worker-builder
-ARG FOLDER_PATH
 
 RUN apt-get update && apt-get install -y clang libc++-dev nodejs npm
 RUN npm -g i workerd
