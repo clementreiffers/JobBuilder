@@ -18,6 +18,9 @@ package controllers
 
 import (
 	"context"
+	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -46,10 +49,29 @@ type JobBuilderReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
-func (r *JobBuilderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+func applyResource(r *JobBuilderReconciler, ctx context.Context, resource client.Object, foundResource client.Object) error {
+	err := r.Get(ctx, types.NamespacedName{Name: resource.GetName(), Namespace: resource.GetNamespace()}, foundResource)
+	if err != nil && errors.IsNotFound(err) {
+		err = r.Create(ctx, resource)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	return err
+}
 
-	// TODO(user): your logic here
+func (r *JobBuilderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	logger := log.Log.WithValues("JobBuilder", req.NamespacedName)
+
+	job := createJob()
+	err := applyResource(r, ctx, &job, &batchv1.Job{})
+	if err != nil {
+		logger.Error(err, "unable to create Pod")
+		return ctrl.Result{}, err
+	}
+
+	logger.Info("Job Created!")
 
 	return ctrl.Result{}, nil
 }
